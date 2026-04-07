@@ -4,7 +4,16 @@
 > **This repository is not open-source.**
 > Unauthorized use is prohibited.
 
-OpenGovern is a robust decentralized governance framework built on the Algorand blockchain, designed to facilitate transparent and secure decision-making processes for organizations.
+OpenGovern is a high-performance **Decentralized Autonomous Organization (DAO) Framework** architected on the **Algorand Blockchain**. It empowers organizations—from small venture collectives to large-scale enterprises—to move their operational logic from trust-based offline processes to immutable, on-chain execution.
+
+By leveraging Algorand's unique **Pure Proof of Stake (PPoS)** consensus, OpenGovern ensures that every governance action—be it a member joining, a vote being cast, or a treasury disbursement—is finalized in seconds with negligible transaction costs. The protocol is designed to eliminate the need for centralized intermediaries, ensuring that "Code is Law" remains the fundamental principle of your organization’s management.
+
+## 🌟 Why OpenGovern?
+
+- **Instant Finality**: Leveraging Algorand’s sub-4-second block times for immediate governance feedback.
+- **Micro-Fee Economy**: Democratizing governance by allowing even the smallest stakeholders to participate without losing funds to high gas fees.
+- **Trustless Treasury**: Organizational funds are held in a smart-contract-controlled vault, unlockable only through community-ratified proposals.
+- **Radical Transparency**: Every decision and financial move is recorded permanently on the public ledger for auditability.
 
 ## 🚀 Key Features
 
@@ -82,9 +91,44 @@ This repository is maintained for internal organizational use. Future updates in
 
 ---
 
+## 🌐 Network Configuration
+
+OpenGovern is designed to be environment-agnostic. You can switch between networks by updating the `VITE_NETWORK` environment variable in your frontend `.env` file:
+
+### 1. LocalNet (Development)
+- **Environment Setting**: `VITE_NETWORK=localnet`
+- **Wallet Support**: Best with AlgoKit KMD or sandbox wallets.
+- **Connection**: `http://localhost:4001` (algod) and `http://localhost:8980` (indexer).
+
+### 2. TestNet (Testing)
+- **Environment Setting**: `VITE_NETWORK=testnet`
+- **Wallet Support**: Pera, Defly, and other mobile/web wallets.
+- **Connection**: Routed via [Algonode.io](https://algonode.io/) public APIs.
+
+### 3. MainNet (Production)
+- **Environment Setting**: `VITE_NETWORK=mainnet`
+- **Node Type**: Production-ready main nodes.
+
+> [!TIP]
+> After modifying your `.env` file, ensure you restart the development server to reload the configuration.
+
+---
+
+## ⚙️ DAO Administration
+
+### Removing a DAO
+As of version 1.1, DAO creators can decommission their application instances to reclaim the Minimum Balance Requirement (MBR) and clear the on-chain state:
+1. Navigate to the dashboard for the DAO you wish to remove.
+2. Ensure you are connected with the **creator's wallet address**.
+3. Locate and click the **☠️ Delete DAO** button in the top action bar.
+4. **Result**: All remaining treasury funds (ALGO) will be swept back to your wallet, and the DAO will be removed from the registry.
+
+---
+
 ## 📝 Usage Notes
 
-- **Network Selection**: The project is pre-configured for **LocalNet** (development) and **Testnet** (testing).
-- **Vercel Deployment**: The frontend is optimized for zero-config deployment on Vercel.
-- **Contract Artifacts**: Always ensure artifacts are committed after a contract change to keep the frontend clients in sync.
+- **Network Selection**: Managed via `VITE_NETWORK` in the frontend `.env`. Defaults to `localnet` if not specified.
+- **Vercel Deployment**: Ensure `VITE_NETWORK` is set in your Vercel Environment Variables.
+- **Contract Artifacts**: If you modify the smart contract logic, run `algokit project run build` and ensure the `.b64` TEAL files in `projects/opengovern-frontend/public/` are updated.
+- **Supabase Connectivity**: Ensure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are correctly configured for DAO persistence.
 
