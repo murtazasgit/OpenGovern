@@ -1,0 +1,50 @@
+[
+  {
+    "network": "localnet",
+    "app_id": 1002,
+    "app_address": "O3VYQKJ45XILV2GVDO44LM2IGPUD2QYRXNFX5K4ZDC2B4BD4ZZXU5AQG24",
+    "dao_name": "MyDAO",
+    "deployer": "ESEXNKGHSTIFW3THR2GLT4YMPBRXBMOSCBCGXF4BTJBHVQMTKQCB657NLM",
+    "deployed_at": "2026-04-05T18:34:04.472601+00:00"
+  },
+  {
+    "network": "localnet",
+    "app_id": 1002,
+    "app_address": "O3VYQKJ45XILV2GVDO44LM2IGPUD2QYRXNFX5K4ZDC2B4BD4ZZXU5AQG24",
+    "dao_name": "MyDAO",
+    "deployer": "J6IEWVH7X6PSGCKQDUG36DOQ2ZCWKHCUYHUL3UUANLIVTK5KXOBMAN26G4",
+    "deployed_at": "2026-04-06T09:26:45.639186+00:00"
+  },
+  {
+    "network": "localnet",
+    "app_id": 1002,
+    "app_address": "O3VYQKJ45XILV2GVDO44LM2IGPUD2QYRXNFX5K4ZDC2B4BD4ZZXU5AQG24",
+    "dao_name": "MyDAO",
+    "deployer": "J6IEWVH7X6PSGCKQDUG36DOQ2ZCWKHCUYHUL3UUANLIVTK5KXOBMAN26G4",
+    "deployed_at": "2026-04-06T09:35:52.126690+00:00"
+  },
+  {
+    "network": "localnet",
+    "app_id": 1002,
+    "app_address": "O3VYQKJ45XILV2GVDO44LM2IGPUD2QYRXNFX5K4ZDC2B4BD4ZZXU5AQG24",
+    "dao_name": "MyDAO",
+    "deployer": "ODYOQ6G46WQMMUIL3QLPKJQ33ZY3OAMOTDZSWM3KZGAHA3RS72OJZZZGII",
+    "deployed_at": "2026-04-06T09:43:40.740181+00:00"
+  },
+  {
+    "network": "localnet",
+    "app_id": 1002,
+    "app_address": "O3VYQKJ45XILV2GVDO44LM2IGPUD2QYRXNFX5K4ZDC2B4BD4ZZXU5AQG24",
+    "dao_name": "MyDAO",
+    "deployer": "ODYOQ6G46WQMMUIL3QLPKJQ33ZY3OAMOTDZSWM3KZGAHA3RS72OJZZZGII",
+    "deployed_at": "2026-04-06T17:01:32.615974+00:00"
+  },
+  {
+    "network": "testnet",
+    "app_id": 758393569,
+    "app_address": "CHBN76QNEKADS26BSPMUK2CTN5COZGKBHUQADQH7RUFFZSZZ2MTAEZMGHI",
+    "dao_name": "MyDAO",
+    "deployer": "5TNG5DCXFASTP4OFUGJTEI6W4DZQCEP4EGGWYAD7GQAIXEG5S7XTM5Q5J4",
+    "deployed_at": "2026-04-06T17:12:10.186513+00:00"
+  }
+]

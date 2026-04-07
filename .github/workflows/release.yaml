@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.vscode/**'
+      - '.idea/**'
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  opengovern-contracts-validate:
+    name: Run opengovern-contracts release
+    secrets: inherit
+    uses: ./.github/workflows/opengovern-contracts-ci.yaml
+
+  opengovern-contracts-release:
+    name: Run opengovern-contracts release
+    secrets: inherit
+    uses: ./.github/workflows/opengovern-contracts-cd.yaml
+    needs: opengovern-contracts-validate
+
+  opengovern-frontend-validate:
+    name: Run opengovern-frontend release
+    secrets: inherit
+    uses: ./.github/workflows/opengovern-frontend-ci.yaml
+
+  opengovern-frontend-release:
+    name: Run opengovern-frontend release
+    secrets: inherit
+    uses: ./.github/workflows/opengovern-frontend-cd.yaml
+    needs: opengovern-frontend-validate

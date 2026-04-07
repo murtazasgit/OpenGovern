@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@400..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased text-black;
+    @apply bg-gradient-to-br from-[#c8c8f0] via-[#d0d0f5] to-[#c4c4ee] min-h-screen;
+    background-attachment: fixed;
+    /* subtle topographic pattern overlay */
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"), linear-gradient(135deg, #c8c8f0 0%, #d0d0f5 50%, #c4c4ee 100%);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Syne', sans-serif;
+  }
+}
+
+@layer components {
+  /* Futuristic web3 panels */
+  .panel-web3 {
+    @apply bg-white border-2 border-black rounded-lg shadow-[6px_6px_0px_#000] transition-transform duration-300;
+  }
+  
+  .panel-web3:hover {
+    @apply shadow-[8px_8px_0px_#000] -translate-y-1 -translate-x-1;
+  }
+
+  /* Button styles */
+  .btn-web3 {
+    @apply inline-flex items-center justify-center px-6 py-3 font-bold font-mono tracking-widest uppercase border-2 border-black rounded shadow-[4px_4px_0px_#000] cursor-pointer transition-all active:shadow-none active:translate-x-1 active:translate-y-1;
+  }
+
+  .btn-primary-web3 {
+    @apply btn-web3 bg-[#f59e0b] text-black hover:bg-[#d97706];
+  }
+  
+  .btn-secondary-web3 {
+    @apply btn-web3 bg-white text-black hover:bg-gray-100;
+  }
+
+  .font-mono {
+    font-family: 'Space Mono', monospace;
+  }
+  
+  .font-sans {
+    font-family: 'Inter', sans-serif;
+  }
+}

@@ -1,0 +1,14 @@
+name: Pull Request validation
+
+on: [pull_request]
+
+
+jobs:
+  opengovern-contracts-ci:
+    name: Run opengovern-contracts validation
+    uses: ./.github/workflows/opengovern-contracts-ci.yaml
+
+  opengovern-frontend-ci:
+    name: Run opengovern-frontend validation
+    uses: ./.github/workflows/opengovern-frontend-ci.yaml
+
