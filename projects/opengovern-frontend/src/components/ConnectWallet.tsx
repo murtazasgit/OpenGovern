@@ -46,7 +46,7 @@ export function ConnectWallet() {
       {wallets
         .filter((w) => (isLocalnet ? true : w.id?.toLowerCase() !== 'kmd'))
         .map((wallet) => (
-          <button key={wallet.id} onClick={() => wallet.connect()} className="btn-primary-web3 text-xs w-[180px]">
+          <button key={wallet.id} onClick={() => wallet.connect()} className="btn-primary-web3 text-xs w-full sm:w-[180px]">
             Connect {wallet.metadata?.name ?? wallet.id}
           </button>
         ))}

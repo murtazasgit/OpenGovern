@@ -2,9 +2,9 @@ import React from 'react'
 
 const AboutPage: React.FC = () => {
   return (
-    <div className="flex flex-col gap-8 max-w-[100vw] overflow-x-hidden p-2">
+    <div className="flex flex-col gap-8 w-full">
       {/* Hero */}
-      <div className="panel-web3 p-8 md:p-12 bg-white relative overflow-hidden group">
+      <div className="panel-web3 p-6 md:p-12 bg-white relative overflow-hidden group">
         <div className="absolute top-0 right-12 w-8 h-8 border-b-2 border-l-2 border-black bg-black transform -translate-y-1/2 group-hover:bg-[#fbbf24] transition-colors"></div>
 
         <h2 className="text-4xl md:text-5xl font-extrabold uppercase mb-4 drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">About</h2>
@@ -71,7 +71,7 @@ const AboutPage: React.FC = () => {
       {/* How It Works */}
       <div className="panel-web3 bg-white p-6 md:p-8">
         <h3 className="text-2xl font-extrabold uppercase tracking-tighter mb-6 border-b-4 border-black pb-3">How It Works</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {[
             {
               step: '01',

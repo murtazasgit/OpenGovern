@@ -153,30 +153,30 @@ const ProposalCard: React.FC<ProposalCardProps> = ({
       </div>
 
       {/* Action buttons */}
-      <div className="flex justify-end gap-3 pt-3 border-t-2 border-dashed border-black/10">
+      <div className="flex flex-wrap justify-end gap-3 pt-3 border-t-2 border-dashed border-black/10">
         {isVotingOpen && (
           <>
             {proposal.userHasVoted ? (
-              <span className="text-xs px-4 py-2 font-mono uppercase tracking-widest text-black/40 italic flex items-center">
+              <span className="text-xs px-4 py-2 font-mono uppercase tracking-widest text-black/40 italic flex items-center w-full justify-center sm:w-auto">
                 ✓ Already Voted
               </span>
             ) : (
-              <>
+              <div className="flex flex-wrap justify-end gap-2 w-full">
                 <button
                   onClick={() => onVote(true)}
-                  className="btn-web3 bg-green-100 text-green-800 hover:bg-green-200 text-xs px-4 py-2 border-green-600"
+                  className="btn-web3 bg-green-100 text-green-800 hover:bg-green-200 text-xs px-4 py-2 border-green-600 flex-1"
                   data-test-id="vote-yes-btn"
                 >
                   VOTE YES
                 </button>
                 <button
                   onClick={() => onVote(false)}
-                  className="btn-web3 bg-red-100 text-red-800 hover:bg-red-200 text-xs px-4 py-2 border-red-500"
+                  className="btn-web3 bg-red-100 text-red-800 hover:bg-red-200 text-xs px-4 py-2 border-red-500 flex-1 sm:flex-initial"
                   data-test-id="vote-no-btn"
                 >
                   VOTE NO
                 </button>
-              </>
+              </div>
             )}
           </>
         )}
@@ -184,7 +184,7 @@ const ProposalCard: React.FC<ProposalCardProps> = ({
         {canFinalize && (
           <button
             onClick={onFinalize}
-            className="btn-web3 bg-[#fbbf24] text-black hover:bg-[#f59e0b] text-xs px-4 py-2 border-2 border-black animate-pulse"
+            className="btn-web3 bg-[#fbbf24] text-black hover:bg-[#f59e0b] text-xs px-4 py-2 border-2 border-black animate-pulse w-full sm:w-auto"
             data-test-id="finalize-btn"
           >
             {isAbsoluteMajority ? 'Auto-Execute Now' : 'Finalize & Execute'}

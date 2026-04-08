@@ -12,7 +12,7 @@ const DAOCard: React.FC<Props> = ({ dao, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="border border-black bg-white p-6 cursor-pointer hover:bg-gray-50 transition-colors group flex flex-col h-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] hover:shadow-none"
+      className="border border-black bg-white p-4 sm:p-6 cursor-pointer hover:bg-gray-50 transition-colors group flex flex-col h-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] hover:shadow-none"
     >
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-2">

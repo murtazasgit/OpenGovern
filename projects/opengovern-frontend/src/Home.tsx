@@ -209,7 +209,7 @@ const Home: React.FC = () => {
   // ── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col gap-12 max-w-[100vw] overflow-x-hidden p-2">
+    <div className="flex flex-col gap-12 w-full">
       {/* Intro Panel */}
       <div className="panel-web3 p-6 md:p-12 relative overflow-hidden bg-white group">
         {/* Decorative notch effect with absolute positioning */}
@@ -288,15 +288,15 @@ const Home: React.FC = () => {
 
       {/* DAO List Section */}
       <div className="mt-4">
-        <div className="flex items-center justify-between mb-8 border-b-4 border-black pb-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-8 border-b-4 border-black pb-4 gap-4">
           <h3 className="text-3xl font-extrabold uppercase tracking-tighter">Active DAOs</h3>
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-4 items-center w-full sm:w-auto justify-between sm:justify-end">
             {loading ? (
               <span className="animate-pulse bg-black text-white px-3 py-1 font-mono text-sm uppercase shadow-[2px_2px_0_rgba(251,191,36,0.8)]">
                 Loading
               </span>
             ) : (
-              <button onClick={loadDaos} className="btn-secondary-web3 text-xs py-1 px-3 hidden sm:block">
+              <button onClick={loadDaos} className="btn-secondary-web3 text-xs py-1 px-3">
                 Refresh Sync
               </button>
             )}
@@ -308,7 +308,7 @@ const Home: React.FC = () => {
 
         {/* Content Section */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-pulse">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-pulse">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-64 panel-web3 bg-white/50 border-dashed border-black/20"></div>
             ))}
@@ -323,7 +323,7 @@ const Home: React.FC = () => {
           </div>
         ) : (
           /* DAO grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 xl:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 xl:gap-8">
             {daos.map((dao) => (
               <DAOCard key={dao.appId.toString()} dao={dao} onClick={() => navigate(`/dao/${dao.appId}`)} />
             ))}
