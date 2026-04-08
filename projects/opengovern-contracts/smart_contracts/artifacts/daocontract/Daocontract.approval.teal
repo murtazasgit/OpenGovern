@@ -4,22 +4,22 @@
 // algopy.arc4.ARC4Contract.approval_program() -> uint64:
 main:
     intcblock 0 1 8 2
-    bytecblock "total_members" "membership_type" "creator" "proposal_count" 0x70 "quorum" "threshold" "voting_duration" "minimum_stake" 0x77 "dao_name" 0x0000 "description" "member_since" "staked_amount"
+    bytecblock "total_members" "membership_type" "creator" 0x70 "proposal_count" "quorum" "threshold" "voting_duration" "minimum_stake" 0x77 0x00 "dao_name" 0x0000 "description" "member_since" "staked_amount"
     txn ApplicationID
     bnz main_after_if_else@2
     // smart_contracts/daocontract/contract.py:66-67
     // # ── Global state ──────────────────────────────────────────────
     // self.dao_name = GlobalState(arc4.String(), key="dao_name")
-    bytec 10 // "dao_name"
-    bytec 11 // 0x0000
+    bytec 11 // "dao_name"
+    bytec 12 // 0x0000
     app_global_put
     // smart_contracts/daocontract/contract.py:68
     // self.description = GlobalState(arc4.String(), key="description")
-    bytec 12 // "description"
+    bytec 13 // "description"
     // smart_contracts/daocontract/contract.py:66-67
     // # ── Global state ──────────────────────────────────────────────
     // self.dao_name = GlobalState(arc4.String(), key="dao_name")
-    bytec 11 // 0x0000
+    bytec 12 // 0x0000
     // smart_contracts/daocontract/contract.py:68
     // self.description = GlobalState(arc4.String(), key="description")
     app_global_put
@@ -40,7 +40,7 @@ main:
     app_global_put
     // smart_contracts/daocontract/contract.py:72
     // self.proposal_count = GlobalState(UInt64(0), key="proposal_count")
-    bytec_3 // "proposal_count"
+    bytec 4 // "proposal_count"
     intc_0 // 0
     app_global_put
     // smart_contracts/daocontract/contract.py:73
@@ -81,13 +81,13 @@ main_switch_case_next@8:
     !
     assert
     txn ApplicationID
-    bz main_create_NoOp@18
-    pushbytess 0x20463666 0x9284c4f1 0xeed10d58 0xf5dca605 0xf7f4481f 0xf5910756 0x229b562d // method "fund_treasury(pay)void", method "add_to_whitelist(address)void", method "remove_from_whitelist(address)void", method "create_proposal(string,string,address,uint64)uint64", method "vote(uint64,bool)void", method "finalize_proposal(uint64)void", method "execute_proposal(uint64,uint64)void"
+    bz main_create_NoOp@20
+    pushbytess 0xc19da49c 0x333cd4be 0x20463666 0x9284c4f1 0xeed10d58 0xf5dca605 0xf7f4481f 0xf5910756 0x229b562d // method "delete_proposal(uint64)void", method "delete_vote_record(uint64,address)void", method "fund_treasury(pay)void", method "add_to_whitelist(address)void", method "remove_from_whitelist(address)void", method "create_proposal(string,string,address,uint64)uint64", method "vote(uint64,bool)void", method "finalize_proposal(uint64)void", method "execute_proposal(uint64,uint64)void"
     txna ApplicationArgs 0
-    match fund_treasury add_to_whitelist remove_from_whitelist create_proposal vote finalize_proposal execute_proposal
+    match delete_proposal delete_vote_record fund_treasury add_to_whitelist remove_from_whitelist create_proposal vote finalize_proposal execute_proposal
     err
 
-main_create_NoOp@18:
+main_create_NoOp@20:
     // smart_contracts/daocontract/contract.py:59-62
     // # ---------------------------------------------------------------------------
     // # Main Contract
@@ -99,7 +99,7 @@ main_create_NoOp@18:
     err
 
 main_delete_dao_route@7:
-    // smart_contracts/daocontract/contract.py:378-381
+    // smart_contracts/daocontract/contract.py:413-416
     // # ------------------------------------------------------------------
     // # 9. delete_dao — creator only
     // # ------------------------------------------------------------------
@@ -113,7 +113,7 @@ main_delete_dao_route@7:
     b delete_dao
 
 main_leave_dao_route@6:
-    // smart_contracts/daocontract/contract.py:175-178
+    // smart_contracts/daocontract/contract.py:239-242
     // # ------------------------------------------------------------------
     // # 3c. leave_dao — close out, return staked ALGO if applicable
     // # ------------------------------------------------------------------
@@ -127,7 +127,7 @@ main_leave_dao_route@6:
     b leave_dao
 
 main_stake_join_route@5:
-    // smart_contracts/daocontract/contract.py:156-159
+    // smart_contracts/daocontract/contract.py:220-223
     // # ------------------------------------------------------------------
     // # 3b. stake_join — stake ALGO to join (membership_type == 1)
     // # ------------------------------------------------------------------
@@ -141,7 +141,7 @@ main_stake_join_route@5:
     b stake_join
 
 main_opt_in_member_route@4:
-    // smart_contracts/daocontract/contract.py:137-140
+    // smart_contracts/daocontract/contract.py:201-204
     // # ------------------------------------------------------------------
     // # 3a. opt_in_member — whitelist self-claim (membership_type == 0)
     // # ------------------------------------------------------------------
@@ -155,9 +155,96 @@ main_opt_in_member_route@4:
     b opt_in_member
 
 
+// smart_contracts.daocontract.contract.Daocontract.delete_proposal[routing]() -> void:
+delete_proposal:
+    // smart_contracts/daocontract/contract.py:142
+    // @arc4.abimethod()
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // smart_contracts/daocontract/contract.py:145
+    // assert Txn.sender.bytes == self.creator.value, (
+    txn Sender
+    intc_0 // 0
+    bytec_2 // "creator"
+    app_global_get_ex
+    assert // check self.creator exists
+    ==
+    // smart_contracts/daocontract/contract.py:145-147
+    // assert Txn.sender.bytes == self.creator.value, (
+    //     "Only the creator can delete proposals"
+    // )
+    assert // Only the creator can delete proposals
+    // smart_contracts/daocontract/contract.py:148-149
+    // # Clear the proposal box
+    // del self.proposals[arc4.UInt64(proposal_id)]
+    bytec_3 // 0x70
+    swap
+    concat
+    box_del
+    pop
+    // smart_contracts/daocontract/contract.py:142
+    // @arc4.abimethod()
+    intc_1 // 1
+    return
+
+
+// smart_contracts.daocontract.contract.Daocontract.delete_vote_record[routing]() -> void:
+delete_vote_record:
+    // smart_contracts/daocontract/contract.py:151
+    // @arc4.abimethod()
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 2
+    dup
+    len
+    pushint 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // smart_contracts/daocontract/contract.py:154
+    // assert Txn.sender.bytes == self.creator.value, (
+    txn Sender
+    intc_0 // 0
+    bytec_2 // "creator"
+    app_global_get_ex
+    assert // check self.creator exists
+    ==
+    // smart_contracts/daocontract/contract.py:154-156
+    // assert Txn.sender.bytes == self.creator.value, (
+    //     "Only the creator can manage vote records"
+    // )
+    assert // Only the creator can manage vote records
+    // smart_contracts/daocontract/contract.py:438
+    // return op.itob(proposal_id) + voter.bytes
+    swap
+    itob
+    swap
+    concat
+    // smart_contracts/daocontract/contract.py:157-158
+    // # Clear the vote box
+    // del self.votes[_vote_box_key(proposal_id, voter)]
+    pushbytes 0x76
+    swap
+    concat
+    box_del
+    pop
+    // smart_contracts/daocontract/contract.py:151
+    // @arc4.abimethod()
+    intc_1 // 1
+    return
+
+
 // smart_contracts.daocontract.contract.Daocontract.create_dao[routing]() -> void:
 create_dao:
-    // smart_contracts/daocontract/contract.py:96-99
+    // smart_contracts/daocontract/contract.py:160-163
     // # ------------------------------------------------------------------
     // # 1. create_dao — called once at application creation
     // # ------------------------------------------------------------------
@@ -217,81 +304,81 @@ create_dao:
     ==
     assert // invalid number of bytes for arc4.uint64
     btoi
-    // smart_contracts/daocontract/contract.py:110
+    // smart_contracts/daocontract/contract.py:174
     // assert quorum > 0, "quorum must be > 0"
     dig 4
     assert // quorum must be > 0
-    // smart_contracts/daocontract/contract.py:111
+    // smart_contracts/daocontract/contract.py:175
     // assert threshold > 0, "threshold must be > 0"
     dig 3
     assert // threshold must be > 0
-    // smart_contracts/daocontract/contract.py:112
+    // smart_contracts/daocontract/contract.py:176
     // assert threshold <= 100, "threshold must be <= 100"
     dig 3
     pushint 100
     <=
     assert // threshold must be <= 100
-    // smart_contracts/daocontract/contract.py:113
+    // smart_contracts/daocontract/contract.py:177
     // assert voting_duration > 0, "voting_duration must be > 0"
     dig 2
     assert // voting_duration must be > 0
-    // smart_contracts/daocontract/contract.py:114
+    // smart_contracts/daocontract/contract.py:178
     // assert membership_type <= 1, "membership_type must be 0 or 1"
     dig 1
     intc_1 // 1
     <=
     assert // membership_type must be 0 or 1
-    // smart_contracts/daocontract/contract.py:116
+    // smart_contracts/daocontract/contract.py:180
     // self.dao_name.value = name
-    bytec 10 // "dao_name"
+    bytec 11 // "dao_name"
     uncover 7
     app_global_put
-    // smart_contracts/daocontract/contract.py:117
+    // smart_contracts/daocontract/contract.py:181
     // self.description.value = description
-    bytec 12 // "description"
+    bytec 13 // "description"
     uncover 6
     app_global_put
-    // smart_contracts/daocontract/contract.py:118
+    // smart_contracts/daocontract/contract.py:182
     // self.quorum.value = quorum
     bytec 5 // "quorum"
     uncover 5
     app_global_put
-    // smart_contracts/daocontract/contract.py:119
+    // smart_contracts/daocontract/contract.py:183
     // self.threshold.value = threshold
     bytec 6 // "threshold"
     uncover 4
     app_global_put
-    // smart_contracts/daocontract/contract.py:120
+    // smart_contracts/daocontract/contract.py:184
     // self.voting_duration.value = voting_duration
     bytec 7 // "voting_duration"
     uncover 3
     app_global_put
-    // smart_contracts/daocontract/contract.py:121
+    // smart_contracts/daocontract/contract.py:185
     // self.proposal_count.value = UInt64(0)
-    bytec_3 // "proposal_count"
+    bytec 4 // "proposal_count"
     intc_0 // 0
     app_global_put
-    // smart_contracts/daocontract/contract.py:122
+    // smart_contracts/daocontract/contract.py:186
     // self.total_members.value = UInt64(0)
     bytec_0 // "total_members"
     intc_0 // 0
     app_global_put
-    // smart_contracts/daocontract/contract.py:123
+    // smart_contracts/daocontract/contract.py:187
     // self.membership_type.value = membership_type
     bytec_1 // "membership_type"
     uncover 2
     app_global_put
-    // smart_contracts/daocontract/contract.py:124
+    // smart_contracts/daocontract/contract.py:188
     // self.minimum_stake.value = minimum_stake
     bytec 8 // "minimum_stake"
     swap
     app_global_put
-    // smart_contracts/daocontract/contract.py:125
+    // smart_contracts/daocontract/contract.py:189
     // self.creator.value = Txn.sender.bytes
     bytec_2 // "creator"
     txn Sender
     app_global_put
-    // smart_contracts/daocontract/contract.py:96-99
+    // smart_contracts/daocontract/contract.py:160-163
     // # ------------------------------------------------------------------
     // # 1. create_dao — called once at application creation
     // # ------------------------------------------------------------------
@@ -302,7 +389,7 @@ create_dao:
 
 // smart_contracts.daocontract.contract.Daocontract.fund_treasury[routing]() -> void:
 fund_treasury:
-    // smart_contracts/daocontract/contract.py:127-130
+    // smart_contracts/daocontract/contract.py:191-194
     // # ------------------------------------------------------------------
     // # 2. fund_treasury — anyone sends ALGO to the contract
     // # ------------------------------------------------------------------
@@ -315,22 +402,22 @@ fund_treasury:
     intc_1 // pay
     ==
     assert // transaction type is pay
-    // smart_contracts/daocontract/contract.py:132
+    // smart_contracts/daocontract/contract.py:196
     // assert payment.receiver == Global.current_application_address, (
     dup
     gtxns Receiver
     global CurrentApplicationAddress
     ==
-    // smart_contracts/daocontract/contract.py:132-134
+    // smart_contracts/daocontract/contract.py:196-198
     // assert payment.receiver == Global.current_application_address, (
     //     "Payment must be sent to the DAO treasury"
     // )
     assert // Payment must be sent to the DAO treasury
-    // smart_contracts/daocontract/contract.py:135
+    // smart_contracts/daocontract/contract.py:199
     // assert payment.amount > 0, "Must fund a positive amount"
     gtxns Amount
     assert // Must fund a positive amount
-    // smart_contracts/daocontract/contract.py:127-130
+    // smart_contracts/daocontract/contract.py:191-194
     // # ------------------------------------------------------------------
     // # 2. fund_treasury — anyone sends ALGO to the contract
     // # ------------------------------------------------------------------
@@ -341,7 +428,7 @@ fund_treasury:
 
 // smart_contracts.daocontract.contract.Daocontract.opt_in_member[routing]() -> void:
 opt_in_member:
-    // smart_contracts/daocontract/contract.py:142-143
+    // smart_contracts/daocontract/contract.py:206-207
     // # Whitelist mode: verify sender is creator OR whitelisted
     // if self.membership_type.value == UInt64(0):
     intc_0 // 0
@@ -349,7 +436,7 @@ opt_in_member:
     app_global_get_ex
     assert // check self.membership_type exists
     bnz opt_in_member_after_if_else@5
-    // smart_contracts/daocontract/contract.py:144
+    // smart_contracts/daocontract/contract.py:208
     // is_creator = Txn.sender.bytes == self.creator.value
     txn Sender
     intc_0 // 0
@@ -357,16 +444,16 @@ opt_in_member:
     app_global_get_ex
     assert // check self.creator exists
     ==
-    // smart_contracts/daocontract/contract.py:145
+    // smart_contracts/daocontract/contract.py:209
     // if not is_creator:
     bnz opt_in_member_after_if_else@5
-    // smart_contracts/daocontract/contract.py:147
+    // smart_contracts/daocontract/contract.py:211
     // assert key in self.whitelist, "Not on the whitelist"
     bytec 9 // 0x77
-    // smart_contracts/daocontract/contract.py:146
+    // smart_contracts/daocontract/contract.py:210
     // key = arc4.Address(Txn.sender)
     txn Sender
-    // smart_contracts/daocontract/contract.py:147
+    // smart_contracts/daocontract/contract.py:211
     // assert key in self.whitelist, "Not on the whitelist"
     concat
     box_len
@@ -374,7 +461,7 @@ opt_in_member:
     assert // Not on the whitelist
 
 opt_in_member_after_if_else@5:
-    // smart_contracts/daocontract/contract.py:149-150
+    // smart_contracts/daocontract/contract.py:213-214
     // # Stake mode: this method should NOT be used — use stake_join
     // if self.membership_type.value == UInt64(1):
     intc_0 // 0
@@ -385,7 +472,7 @@ opt_in_member_after_if_else@5:
     ==
     !
     assert // Use stake_join for stake-based DAOs
-    // smart_contracts/daocontract/contract.py:153
+    // smart_contracts/daocontract/contract.py:217
     // self.total_members.value += 1
     intc_0 // 0
     bytec_0 // "total_members"
@@ -396,13 +483,13 @@ opt_in_member_after_if_else@5:
     bytec_0 // "total_members"
     swap
     app_global_put
-    // smart_contracts/daocontract/contract.py:154
+    // smart_contracts/daocontract/contract.py:218
     // self.member_since[Txn.sender] = Global.latest_timestamp
     txn Sender
-    bytec 13 // "member_since"
+    bytec 14 // "member_since"
     global LatestTimestamp
     app_local_put
-    // smart_contracts/daocontract/contract.py:137-140
+    // smart_contracts/daocontract/contract.py:201-204
     // # ------------------------------------------------------------------
     // # 3a. opt_in_member — whitelist self-claim (membership_type == 0)
     // # ------------------------------------------------------------------
@@ -413,7 +500,7 @@ opt_in_member_after_if_else@5:
 
 // smart_contracts.daocontract.contract.Daocontract.stake_join[routing]() -> void:
 stake_join:
-    // smart_contracts/daocontract/contract.py:156-159
+    // smart_contracts/daocontract/contract.py:220-223
     // # ------------------------------------------------------------------
     // # 3b. stake_join — stake ALGO to join (membership_type == 1)
     // # ------------------------------------------------------------------
@@ -426,7 +513,7 @@ stake_join:
     intc_1 // pay
     ==
     assert // transaction type is pay
-    // smart_contracts/daocontract/contract.py:161
+    // smart_contracts/daocontract/contract.py:225
     // assert self.membership_type.value == UInt64(1), (
     intc_0 // 0
     bytec_1 // "membership_type"
@@ -434,23 +521,23 @@ stake_join:
     assert // check self.membership_type exists
     intc_1 // 1
     ==
-    // smart_contracts/daocontract/contract.py:161-163
+    // smart_contracts/daocontract/contract.py:225-227
     // assert self.membership_type.value == UInt64(1), (
     //     "stake_join is only for stake-based DAOs"
     // )
     assert // stake_join is only for stake-based DAOs
-    // smart_contracts/daocontract/contract.py:164
+    // smart_contracts/daocontract/contract.py:228
     // assert payment.receiver == Global.current_application_address, (
     dup
     gtxns Receiver
     global CurrentApplicationAddress
     ==
-    // smart_contracts/daocontract/contract.py:164-166
+    // smart_contracts/daocontract/contract.py:228-230
     // assert payment.receiver == Global.current_application_address, (
     //     "Payment must be sent to the DAO"
     // )
     assert // Payment must be sent to the DAO
-    // smart_contracts/daocontract/contract.py:167
+    // smart_contracts/daocontract/contract.py:231
     // assert payment.amount >= self.minimum_stake.value, (
     gtxns Amount
     intc_0 // 0
@@ -459,12 +546,12 @@ stake_join:
     assert // check self.minimum_stake exists
     dig 1
     <=
-    // smart_contracts/daocontract/contract.py:167-169
+    // smart_contracts/daocontract/contract.py:231-233
     // assert payment.amount >= self.minimum_stake.value, (
     //     "Insufficient stake amount"
     // )
     assert // Insufficient stake amount
-    // smart_contracts/daocontract/contract.py:171
+    // smart_contracts/daocontract/contract.py:235
     // self.total_members.value += 1
     intc_0 // 0
     bytec_0 // "total_members"
@@ -475,19 +562,19 @@ stake_join:
     bytec_0 // "total_members"
     swap
     app_global_put
-    // smart_contracts/daocontract/contract.py:172
+    // smart_contracts/daocontract/contract.py:236
     // self.member_since[Txn.sender] = Global.latest_timestamp
     txn Sender
-    bytec 13 // "member_since"
+    bytec 14 // "member_since"
     global LatestTimestamp
     app_local_put
-    // smart_contracts/daocontract/contract.py:173
+    // smart_contracts/daocontract/contract.py:237
     // self.staked_amount[Txn.sender] = payment.amount
     txn Sender
-    bytec 14 // "staked_amount"
+    bytec 15 // "staked_amount"
     uncover 2
     app_local_put
-    // smart_contracts/daocontract/contract.py:156-159
+    // smart_contracts/daocontract/contract.py:220-223
     // # ------------------------------------------------------------------
     // # 3b. stake_join — stake ALGO to join (membership_type == 1)
     // # ------------------------------------------------------------------
@@ -499,7 +586,7 @@ stake_join:
 // smart_contracts.daocontract.contract.Daocontract.leave_dao[routing]() -> void:
 leave_dao:
     pushbytes ""
-    // smart_contracts/daocontract/contract.py:180
+    // smart_contracts/daocontract/contract.py:244
     // self.total_members.value -= 1
     intc_0 // 0
     bytec_0 // "total_members"
@@ -510,7 +597,7 @@ leave_dao:
     bytec_0 // "total_members"
     swap
     app_global_put
-    // smart_contracts/daocontract/contract.py:182-183
+    // smart_contracts/daocontract/contract.py:246-247
     // # Return staked ALGO for stake-based DAOs
     // if self.membership_type.value == UInt64(1):
     intc_0 // 0
@@ -520,42 +607,42 @@ leave_dao:
     intc_1 // 1
     ==
     bz leave_dao_after_if_else@6
-    // smart_contracts/daocontract/contract.py:184
+    // smart_contracts/daocontract/contract.py:248
     // staked = self.staked_amount[Txn.sender]
     txn Sender
     intc_0 // 0
-    bytec 14 // "staked_amount"
+    bytec 15 // "staked_amount"
     app_local_get_ex
     swap
     dup
     cover 2
     bury 3
     assert // check self.staked_amount exists for account
-    // smart_contracts/daocontract/contract.py:185
+    // smart_contracts/daocontract/contract.py:249
     // if staked > UInt64(0):
     bz leave_dao_after_if_else@6
-    // smart_contracts/daocontract/contract.py:186-190
+    // smart_contracts/daocontract/contract.py:250-254
     // itxn.Payment(
     //     receiver=Txn.sender,
     //     amount=staked,
     //     fee=0,
     // ).submit()
     itxn_begin
-    // smart_contracts/daocontract/contract.py:187
+    // smart_contracts/daocontract/contract.py:251
     // receiver=Txn.sender,
     txn Sender
     dig 1
     itxn_field Amount
     itxn_field Receiver
-    // smart_contracts/daocontract/contract.py:186
+    // smart_contracts/daocontract/contract.py:250
     // itxn.Payment(
     intc_1 // pay
     itxn_field TypeEnum
-    // smart_contracts/daocontract/contract.py:189
+    // smart_contracts/daocontract/contract.py:253
     // fee=0,
     intc_0 // 0
     itxn_field Fee
-    // smart_contracts/daocontract/contract.py:186-190
+    // smart_contracts/daocontract/contract.py:250-254
     // itxn.Payment(
     //     receiver=Txn.sender,
     //     amount=staked,
@@ -564,7 +651,7 @@ leave_dao:
     itxn_submit
 
 leave_dao_after_if_else@6:
-    // smart_contracts/daocontract/contract.py:175-178
+    // smart_contracts/daocontract/contract.py:239-242
     // # ------------------------------------------------------------------
     // # 3c. leave_dao — close out, return staked ALGO if applicable
     // # ------------------------------------------------------------------
@@ -575,7 +662,7 @@ leave_dao_after_if_else@6:
 
 // smart_contracts.daocontract.contract.Daocontract.add_to_whitelist[routing]() -> void:
 add_to_whitelist:
-    // smart_contracts/daocontract/contract.py:192-195
+    // smart_contracts/daocontract/contract.py:256-259
     // # ------------------------------------------------------------------
     // # 4. Whitelist management — creator only
     // # ------------------------------------------------------------------
@@ -586,7 +673,7 @@ add_to_whitelist:
     pushint 32
     ==
     assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
-    // smart_contracts/daocontract/contract.py:197
+    // smart_contracts/daocontract/contract.py:261
     // assert Txn.sender.bytes == self.creator.value, (
     txn Sender
     intc_0 // 0
@@ -594,31 +681,31 @@ add_to_whitelist:
     app_global_get_ex
     assert // check self.creator exists
     ==
-    // smart_contracts/daocontract/contract.py:197-199
+    // smart_contracts/daocontract/contract.py:261-263
     // assert Txn.sender.bytes == self.creator.value, (
     //     "Only the creator can manage the whitelist"
     // )
     assert // Only the creator can manage the whitelist
-    // smart_contracts/daocontract/contract.py:200
+    // smart_contracts/daocontract/contract.py:264
     // assert self.membership_type.value == UInt64(0), (
     intc_0 // 0
     bytec_1 // "membership_type"
     app_global_get_ex
     assert // check self.membership_type exists
     !
-    // smart_contracts/daocontract/contract.py:200-202
+    // smart_contracts/daocontract/contract.py:264-266
     // assert self.membership_type.value == UInt64(0), (
     //     "Whitelist is only for whitelist-based DAOs"
     // )
     assert // Whitelist is only for whitelist-based DAOs
-    // smart_contracts/daocontract/contract.py:203
+    // smart_contracts/daocontract/contract.py:267
     // self.whitelist[arc4.Address(address)] = arc4.Bool(True)  # noqa: FBT003
     bytec 9 // 0x77
     swap
     concat
     pushbytes 0x80
     box_put
-    // smart_contracts/daocontract/contract.py:192-195
+    // smart_contracts/daocontract/contract.py:256-259
     // # ------------------------------------------------------------------
     // # 4. Whitelist management — creator only
     // # ------------------------------------------------------------------
@@ -629,7 +716,7 @@ add_to_whitelist:
 
 // smart_contracts.daocontract.contract.Daocontract.remove_from_whitelist[routing]() -> void:
 remove_from_whitelist:
-    // smart_contracts/daocontract/contract.py:205
+    // smart_contracts/daocontract/contract.py:269
     // @arc4.abimethod()
     txna ApplicationArgs 1
     dup
@@ -637,7 +724,7 @@ remove_from_whitelist:
     pushint 32
     ==
     assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
-    // smart_contracts/daocontract/contract.py:207
+    // smart_contracts/daocontract/contract.py:271
     // assert Txn.sender.bytes == self.creator.value, (
     txn Sender
     intc_0 // 0
@@ -645,31 +732,31 @@ remove_from_whitelist:
     app_global_get_ex
     assert // check self.creator exists
     ==
-    // smart_contracts/daocontract/contract.py:207-209
+    // smart_contracts/daocontract/contract.py:271-273
     // assert Txn.sender.bytes == self.creator.value, (
     //     "Only the creator can manage the whitelist"
     // )
     assert // Only the creator can manage the whitelist
-    // smart_contracts/daocontract/contract.py:210
+    // smart_contracts/daocontract/contract.py:274
     // assert self.membership_type.value == UInt64(0), (
     intc_0 // 0
     bytec_1 // "membership_type"
     app_global_get_ex
     assert // check self.membership_type exists
     !
-    // smart_contracts/daocontract/contract.py:210-212
+    // smart_contracts/daocontract/contract.py:274-276
     // assert self.membership_type.value == UInt64(0), (
     //     "Whitelist is only for whitelist-based DAOs"
     // )
     assert // Whitelist is only for whitelist-based DAOs
-    // smart_contracts/daocontract/contract.py:213
+    // smart_contracts/daocontract/contract.py:277
     // del self.whitelist[arc4.Address(address)]
     bytec 9 // 0x77
     swap
     concat
     box_del
     pop
-    // smart_contracts/daocontract/contract.py:205
+    // smart_contracts/daocontract/contract.py:269
     // @arc4.abimethod()
     intc_1 // 1
     return
@@ -677,7 +764,7 @@ remove_from_whitelist:
 
 // smart_contracts.daocontract.contract.Daocontract.create_proposal[routing]() -> void:
 create_proposal:
-    // smart_contracts/daocontract/contract.py:215-218
+    // smart_contracts/daocontract/contract.py:279-282
     // # ------------------------------------------------------------------
     // # 5. create_proposal
     // # ------------------------------------------------------------------
@@ -718,36 +805,36 @@ create_proposal:
     assert // invalid number of bytes for arc4.uint64
     dup
     btoi
-    // smart_contracts/daocontract/contract.py:226-227
+    // smart_contracts/daocontract/contract.py:290-291
     // # Only opted-in members can create proposals
     // assert op.app_opted_in(Txn.sender, Global.current_application_id), (
     txn Sender
     global CurrentApplicationID
     app_opted_in
-    // smart_contracts/daocontract/contract.py:226-229
+    // smart_contracts/daocontract/contract.py:290-293
     // # Only opted-in members can create proposals
     // assert op.app_opted_in(Txn.sender, Global.current_application_id), (
     //     "Must be a DAO member"
     // )
     assert // Must be a DAO member
-    // smart_contracts/daocontract/contract.py:230
+    // smart_contracts/daocontract/contract.py:294
     // assert amount > 0, "Proposal amount must be > 0"
     assert // Proposal amount must be > 0
-    // smart_contracts/daocontract/contract.py:232
+    // smart_contracts/daocontract/contract.py:296
     // proposal_id = self.proposal_count.value
     intc_0 // 0
-    bytec_3 // "proposal_count"
+    bytec 4 // "proposal_count"
     app_global_get_ex
     assert // check self.proposal_count exists
-    // smart_contracts/daocontract/contract.py:233
+    // smart_contracts/daocontract/contract.py:297
     // self.proposal_count.value += 1
     dup
     intc_1 // 1
     +
-    bytec_3 // "proposal_count"
+    bytec 4 // "proposal_count"
     swap
     app_global_put
-    // smart_contracts/daocontract/contract.py:235
+    // smart_contracts/daocontract/contract.py:299
     // deadline = Global.latest_timestamp + self.voting_duration.value
     global LatestTimestamp
     intc_0 // 0
@@ -755,10 +842,10 @@ create_proposal:
     app_global_get_ex
     assert // check self.voting_duration exists
     +
-    // smart_contracts/daocontract/contract.py:245
+    // smart_contracts/daocontract/contract.py:309
     // deadline=arc4.UInt64(deadline),
     itob
-    // smart_contracts/daocontract/contract.py:237-249
+    // smart_contracts/daocontract/contract.py:301-313
     // proposal = Proposal(
     //     title=title,
     //     description=description,
@@ -796,11 +883,11 @@ create_proposal:
     concat
     uncover 2
     concat
-    // smart_contracts/daocontract/contract.py:250
+    // smart_contracts/daocontract/contract.py:314
     // self.proposals[arc4.UInt64(proposal_id)] = proposal.copy()
     swap
     itob
-    bytec 4 // 0x70
+    bytec_3 // 0x70
     dig 1
     concat
     dup
@@ -808,7 +895,7 @@ create_proposal:
     pop
     uncover 2
     box_put
-    // smart_contracts/daocontract/contract.py:215-218
+    // smart_contracts/daocontract/contract.py:279-282
     // # ------------------------------------------------------------------
     // # 5. create_proposal
     // # ------------------------------------------------------------------
@@ -823,7 +910,7 @@ create_proposal:
 
 // smart_contracts.daocontract.contract.Daocontract.vote[routing]() -> void:
 vote:
-    // smart_contracts/daocontract/contract.py:254-257
+    // smart_contracts/daocontract/contract.py:318-321
     // # ------------------------------------------------------------------
     // # 6. vote
     // # ------------------------------------------------------------------
@@ -836,6 +923,8 @@ vote:
     assert // invalid number of bytes for arc4.uint64
     dup
     btoi
+    dup
+    uncover 2
     txna ApplicationArgs 2
     dup
     len
@@ -844,22 +933,22 @@ vote:
     assert // invalid number of bytes for arc4.bool
     intc_0 // 0
     getbit
-    // smart_contracts/daocontract/contract.py:259-260
+    // smart_contracts/daocontract/contract.py:323-324
     // # Must be opted-in member
     // assert op.app_opted_in(Txn.sender, Global.current_application_id), (
     txn Sender
     global CurrentApplicationID
     app_opted_in
-    // smart_contracts/daocontract/contract.py:259-262
+    // smart_contracts/daocontract/contract.py:323-326
     // # Must be opted-in member
     // assert op.app_opted_in(Txn.sender, Global.current_application_id), (
     //     "Must be a DAO member"
     // )
     assert // Must be a DAO member
-    // smart_contracts/daocontract/contract.py:265
+    // smart_contracts/daocontract/contract.py:329
     // assert key in self.proposals, "Proposal does not exist"
-    bytec 4 // 0x70
-    uncover 3
+    bytec_3 // 0x70
+    uncover 2
     concat
     dup
     cover 3
@@ -867,13 +956,13 @@ vote:
     box_len
     bury 1
     assert // Proposal does not exist
-    // smart_contracts/daocontract/contract.py:267
+    // smart_contracts/daocontract/contract.py:331
     // proposal = self.proposals[key].copy()
     dup
     box_get
     pop
     cover 3
-    // smart_contracts/daocontract/contract.py:269-270
+    // smart_contracts/daocontract/contract.py:333-334
     // # Voting window still open
     // assert Global.latest_timestamp <= proposal.deadline.native, (
     global LatestTimestamp
@@ -883,23 +972,23 @@ vote:
     box_extract
     btoi
     <=
-    // smart_contracts/daocontract/contract.py:269-272
+    // smart_contracts/daocontract/contract.py:333-336
     // # Voting window still open
     // assert Global.latest_timestamp <= proposal.deadline.native, (
     //     "Voting period has ended"
     // )
     assert // Voting period has ended
-    // smart_contracts/daocontract/contract.py:274-275
+    // smart_contracts/daocontract/contract.py:338-339
     // # Duplicate vote check via vote-dedup BoxMap
     // vote_key = _vote_box_key(proposal_id, Txn.sender)
     txn Sender
-    // smart_contracts/daocontract/contract.py:403
+    // smart_contracts/daocontract/contract.py:438
     // return op.itob(proposal_id) + voter.bytes
     uncover 2
     itob
     swap
     concat
-    // smart_contracts/daocontract/contract.py:276
+    // smart_contracts/daocontract/contract.py:340
     // assert vote_key not in self.votes, "Already voted on this proposal"
     pushbytes 0x76
     swap
@@ -909,20 +998,20 @@ vote:
     bury 1
     !
     assert // Already voted on this proposal
-    // smart_contracts/daocontract/contract.py:280
+    // smart_contracts/daocontract/contract.py:344
     // voted=arc4.Bool(True),  # noqa: FBT003
     pushbytes 0x80
-    // smart_contracts/daocontract/contract.py:278-281
+    // smart_contracts/daocontract/contract.py:342-345
     // # Record the vote flag
     // self.votes[vote_key] = VoteRecord(
     //     voted=arc4.Bool(True),  # noqa: FBT003
     // )
     box_put
-    // smart_contracts/daocontract/contract.py:283-284
+    // smart_contracts/daocontract/contract.py:347-348
     // # Tally
     // if vote_yes:
     bz vote_else_body@3
-    // smart_contracts/daocontract/contract.py:285
+    // smart_contracts/daocontract/contract.py:349
     // proposal.yes_votes = arc4.UInt64(proposal.yes_votes.native + 1)
     dig 1
     pushint 52
@@ -935,7 +1024,7 @@ vote:
     replace2 52
 
 vote_after_if_else@4:
-    // smart_contracts/daocontract/contract.py:289
+    // smart_contracts/daocontract/contract.py:353
     // self.proposals[key] = proposal.copy()
     dig 1
     dup
@@ -943,7 +1032,12 @@ vote_after_if_else@4:
     pop
     swap
     box_put
-    // smart_contracts/daocontract/contract.py:254-257
+    // smart_contracts/daocontract/contract.py:355-356
+    // # AUTO-EXECUTE: Check if this vote finalized the proposal early
+    // self._do_finalize(proposal_id)
+    dig 1
+    callsub _do_finalize
+    // smart_contracts/daocontract/contract.py:318-321
     // # ------------------------------------------------------------------
     // # 6. vote
     // # ------------------------------------------------------------------
@@ -952,7 +1046,7 @@ vote_after_if_else@4:
     return
 
 vote_else_body@3:
-    // smart_contracts/daocontract/contract.py:287
+    // smart_contracts/daocontract/contract.py:351
     // proposal.no_votes = arc4.UInt64(proposal.no_votes.native + 1)
     dig 1
     pushint 60
@@ -968,9 +1062,9 @@ vote_else_body@3:
 
 // smart_contracts.daocontract.contract.Daocontract.finalize_proposal[routing]() -> void:
 finalize_proposal:
-    // smart_contracts/daocontract/contract.py:291-294
+    // smart_contracts/daocontract/contract.py:358-361
     // # ------------------------------------------------------------------
-    // # 7. finalize_proposal
+    // # 7. finalize_proposal — manual trigger (optional)
     // # ------------------------------------------------------------------
     // @arc4.abimethod()
     txna ApplicationArgs 1
@@ -979,205 +1073,68 @@ finalize_proposal:
     intc_2 // 8
     ==
     assert // invalid number of bytes for arc4.uint64
-    // smart_contracts/daocontract/contract.py:297
+    dup
+    btoi
+    swap
+    // smart_contracts/daocontract/contract.py:364
     // assert key in self.proposals, "Proposal does not exist"
-    bytec 4 // 0x70
+    bytec_3 // 0x70
     swap
     concat
     dupn 2
     box_len
     bury 1
     assert // Proposal does not exist
-    // smart_contracts/daocontract/contract.py:299
-    // proposal = self.proposals[key].copy()
-    dup
-    box_get
-    pop
-    swap
-    // smart_contracts/daocontract/contract.py:301-302
-    // # Must be past voting deadline
-    // assert Global.latest_timestamp > proposal.deadline.native, (
-    global LatestTimestamp
-    dig 1
-    pushint 68
-    intc_2 // 8
-    box_extract
-    btoi
-    >
-    // smart_contracts/daocontract/contract.py:301-304
-    // # Must be past voting deadline
-    // assert Global.latest_timestamp > proposal.deadline.native, (
-    //     "Voting period not ended yet"
-    // )
-    assert // Voting period not ended yet
-    // smart_contracts/daocontract/contract.py:305-306
-    // # Must not already be finalized
-    // assert proposal.rage_quit_deadline.native == 0, (
-    dup
+    // smart_contracts/daocontract/contract.py:368-369
+    // # Must not already be finalized/executed
+    // assert proposal.rage_quit_deadline.native == 0 and not proposal.passed.native, (
     pushint 77
     intc_2 // 8
     box_extract
     btoi
-    !
-    // smart_contracts/daocontract/contract.py:305-308
-    // # Must not already be finalized
-    // assert proposal.rage_quit_deadline.native == 0, (
-    //     "Proposal already finalized"
-    // )
-    assert // Proposal already finalized
-    // smart_contracts/daocontract/contract.py:310
-    // total_votes = proposal.yes_votes.native + proposal.no_votes.native
+    bnz finalize_proposal_bool_false@4
     dup
-    pushint 52
-    intc_2 // 8
+    pushint 76
+    intc_1 // 1
     box_extract
-    btoi
-    dup
+    intc_1 // 1
+    getbit
+    bytec 10 // 0x00
+    intc_0 // 0
     uncover 2
-    pushint 60
-    intc_2 // 8
-    box_extract
-    btoi
-    +
-    dup
-    // smart_contracts/daocontract/contract.py:312-313
-    // # Quorum check
-    // quorum_met = total_votes >= self.quorum.value
-    intc_0 // 0
-    bytec 5 // "quorum"
-    app_global_get_ex
-    assert // check self.quorum exists
-    dig 1
-    <=
-    swap
-    // smart_contracts/daocontract/contract.py:315-316
-    // # Threshold check (yes_votes * 100 / total_votes >= threshold)
-    // threshold_met = False
-    intc_0 // 0
-    swap
-    // smart_contracts/daocontract/contract.py:317
-    // if total_votes > 0:
-    bz finalize_proposal_after_if_else@3
-    // smart_contracts/daocontract/contract.py:318
-    // yes_pct = proposal.yes_votes.native * 100 // total_votes
-    dig 3
-    pushint 100
-    *
-    dig 3
-    /
-    // smart_contracts/daocontract/contract.py:319
-    // threshold_met = yes_pct >= self.threshold.value
-    intc_0 // 0
-    bytec 6 // "threshold"
-    app_global_get_ex
-    assert // check self.threshold exists
-    >=
-    bury 1
-
-finalize_proposal_after_if_else@3:
-    // smart_contracts/daocontract/contract.py:321
-    // if quorum_met and threshold_met:
-    dig 1
-    bz finalize_proposal_else_body@7
-    dup
-    bz finalize_proposal_else_body@7
-    // smart_contracts/daocontract/contract.py:322
-    // proposal.passed = arc4.Bool(True)  # noqa: FBT003
-    dig 4
-    pushint 609
-    intc_1 // 1
     setbit
-    // smart_contracts/daocontract/contract.py:323
-    // proposal.executed = arc4.Bool(True)  # noqa: FBT003
-    pushint 608
-    // smart_contracts/daocontract/contract.py:322
-    // proposal.passed = arc4.Bool(True)  # noqa: FBT003
-    intc_1 // 1
-    // smart_contracts/daocontract/contract.py:323
-    // proposal.executed = arc4.Bool(True)  # noqa: FBT003
-    setbit
-    // smart_contracts/daocontract/contract.py:324
-    // proposal.remaining_amount = arc4.UInt64(0)
-    pushbytes 0x0000000000000000
-    replace2 44
-    dup
-    bury 6
-    // smart_contracts/daocontract/contract.py:326-331
-    // # Execute payment immediately
-    // itxn.Payment(
-    //     receiver=proposal.recipient.native,
-    //     amount=proposal.amount.native,
-    //     fee=0,
-    // ).submit()
-    itxn_begin
-    // smart_contracts/daocontract/contract.py:328
-    // receiver=proposal.recipient.native,
-    dup
-    extract 4 32
-    // smart_contracts/daocontract/contract.py:329
-    // amount=proposal.amount.native,
-    swap
-    pushint 36
-    extract_uint64
-    itxn_field Amount
-    itxn_field Receiver
-    // smart_contracts/daocontract/contract.py:326-327
-    // # Execute payment immediately
-    // itxn.Payment(
-    intc_1 // pay
-    itxn_field TypeEnum
-    // smart_contracts/daocontract/contract.py:330
-    // fee=0,
     intc_0 // 0
-    itxn_field Fee
-    // smart_contracts/daocontract/contract.py:326-331
-    // # Execute payment immediately
-    // itxn.Payment(
-    //     receiver=proposal.recipient.native,
-    //     amount=proposal.amount.native,
-    //     fee=0,
-    // ).submit()
-    itxn_submit
+    getbit
+    bnz finalize_proposal_bool_false@4
+    intc_1 // 1
 
-finalize_proposal_after_if_else@8:
-    // smart_contracts/daocontract/contract.py:335-336
-    // # Set rage-quit window to 0 effectively
-    // proposal.rage_quit_deadline = arc4.UInt64(Global.latest_timestamp)
-    global LatestTimestamp
-    itob
-    dig 5
-    swap
-    replace2 77
-    // smart_contracts/daocontract/contract.py:338
-    // self.proposals[key] = proposal.copy()
-    dig 6
-    dup
-    box_del
-    pop
-    swap
-    box_put
-    // smart_contracts/daocontract/contract.py:291-294
+finalize_proposal_bool_merge@5:
+    // smart_contracts/daocontract/contract.py:368-371
+    // # Must not already be finalized/executed
+    // assert proposal.rage_quit_deadline.native == 0 and not proposal.passed.native, (
+    //     "Proposal already finalized or passed"
+    // )
+    assert // Proposal already finalized or passed
+    // smart_contracts/daocontract/contract.py:373
+    // self._do_finalize(proposal_id)
+    dig 1
+    callsub _do_finalize
+    // smart_contracts/daocontract/contract.py:358-361
     // # ------------------------------------------------------------------
-    // # 7. finalize_proposal
+    // # 7. finalize_proposal — manual trigger (optional)
     // # ------------------------------------------------------------------
     // @arc4.abimethod()
     intc_1 // 1
     return
 
-finalize_proposal_else_body@7:
-    // smart_contracts/daocontract/contract.py:333
-    // proposal.passed = arc4.Bool(False)  # noqa: FBT003
-    dig 4
-    pushint 609
+finalize_proposal_bool_false@4:
     intc_0 // 0
-    setbit
-    bury 5
-    b finalize_proposal_after_if_else@8
+    b finalize_proposal_bool_merge@5
 
 
 // smart_contracts.daocontract.contract.Daocontract.execute_proposal[routing]() -> void:
 execute_proposal:
-    // smart_contracts/daocontract/contract.py:340-343
+    // smart_contracts/daocontract/contract.py:375-378
     // # ------------------------------------------------------------------
     // # 8. execute_proposal — partial or full disbursement
     // # ------------------------------------------------------------------
@@ -1197,9 +1154,9 @@ execute_proposal:
     btoi
     dup
     uncover 2
-    // smart_contracts/daocontract/contract.py:346
+    // smart_contracts/daocontract/contract.py:381
     // assert key in self.proposals, "Proposal does not exist"
-    bytec 4 // 0x70
+    bytec_3 // 0x70
     swap
     concat
     dup
@@ -1208,13 +1165,13 @@ execute_proposal:
     box_len
     bury 1
     assert // Proposal does not exist
-    // smart_contracts/daocontract/contract.py:348
+    // smart_contracts/daocontract/contract.py:383
     // proposal = self.proposals[key].copy()
     dup
     box_get
     pop
     cover 2
-    // smart_contracts/daocontract/contract.py:350
+    // smart_contracts/daocontract/contract.py:385
     // assert proposal.passed.native, "Proposal did not pass"
     dup
     pushint 76
@@ -1223,18 +1180,18 @@ execute_proposal:
     dup
     intc_1 // 1
     getbit
-    pushbytes 0x00
+    bytec 10 // 0x00
     intc_0 // 0
     uncover 2
     setbit
     intc_0 // 0
     getbit
     assert // Proposal did not pass
-    // smart_contracts/daocontract/contract.py:351
+    // smart_contracts/daocontract/contract.py:386
     // assert not proposal.executed.native, "Proposal already fully executed"
     intc_0 // 0
     getbit
-    pushbytes 0x00
+    bytec 10 // 0x00
     intc_0 // 0
     uncover 2
     setbit
@@ -1242,33 +1199,33 @@ execute_proposal:
     getbit
     !
     assert // Proposal already fully executed
-    // smart_contracts/daocontract/contract.py:352
+    // smart_contracts/daocontract/contract.py:387
     // assert proposal.rage_quit_deadline.native > 0, (
     dup
     pushint 77
     intc_2 // 8
     box_extract
     btoi
-    // smart_contracts/daocontract/contract.py:352-354
+    // smart_contracts/daocontract/contract.py:387-389
     // assert proposal.rage_quit_deadline.native > 0, (
     //     "Proposal not yet finalized"
     // )
     dup
     assert // Proposal not yet finalized
-    // smart_contracts/daocontract/contract.py:355
+    // smart_contracts/daocontract/contract.py:390
     // assert Global.latest_timestamp > proposal.rage_quit_deadline.native, (
     global LatestTimestamp
     <
-    // smart_contracts/daocontract/contract.py:355-357
+    // smart_contracts/daocontract/contract.py:390-392
     // assert Global.latest_timestamp > proposal.rage_quit_deadline.native, (
     //     "Rage-quit window still open"
     // )
     assert // Rage-quit window still open
-    // smart_contracts/daocontract/contract.py:358
+    // smart_contracts/daocontract/contract.py:393
     // assert amount > 0, "Amount must be > 0"
     dig 1
     assert // Amount must be > 0
-    // smart_contracts/daocontract/contract.py:359
+    // smart_contracts/daocontract/contract.py:394
     // assert amount <= proposal.remaining_amount.native, (
     pushint 44
     intc_2 // 8
@@ -1276,17 +1233,17 @@ execute_proposal:
     btoi
     dup2
     <=
-    // smart_contracts/daocontract/contract.py:359-361
+    // smart_contracts/daocontract/contract.py:394-396
     // assert amount <= proposal.remaining_amount.native, (
     //     "Amount exceeds remaining"
     // )
     assert // Amount exceeds remaining
-    // smart_contracts/daocontract/contract.py:363-364
+    // smart_contracts/daocontract/contract.py:398-399
     // # Update remaining amount
     // new_remaining = proposal.remaining_amount.native - amount
     swap
     -
-    // smart_contracts/daocontract/contract.py:365
+    // smart_contracts/daocontract/contract.py:400
     // proposal.remaining_amount = arc4.UInt64(new_remaining)
     dup
     itob
@@ -1294,17 +1251,17 @@ execute_proposal:
     swap
     replace2 44
     swap
-    // smart_contracts/daocontract/contract.py:366
+    // smart_contracts/daocontract/contract.py:401
     // if new_remaining == 0:
     bnz execute_proposal_after_if_else@3
-    // smart_contracts/daocontract/contract.py:367
+    // smart_contracts/daocontract/contract.py:402
     // proposal.executed = arc4.Bool(True)  # noqa: FBT003
     pushint 608
     intc_1 // 1
     setbit
 
 execute_proposal_after_if_else@3:
-    // smart_contracts/daocontract/contract.py:369
+    // smart_contracts/daocontract/contract.py:404
     // self.proposals[key] = proposal.copy()
     dig 1
     dup
@@ -1312,7 +1269,7 @@ execute_proposal_after_if_else@3:
     pop
     dig 1
     box_put
-    // smart_contracts/daocontract/contract.py:371-376
+    // smart_contracts/daocontract/contract.py:406-411
     // # Send inner payment to recipient
     // itxn.Payment(
     //     receiver=proposal.recipient.native,
@@ -1320,22 +1277,22 @@ execute_proposal_after_if_else@3:
     //     fee=0,
     // ).submit()
     itxn_begin
-    // smart_contracts/daocontract/contract.py:373
+    // smart_contracts/daocontract/contract.py:408
     // receiver=proposal.recipient.native,
     extract 4 32
     dig 2
     itxn_field Amount
     itxn_field Receiver
-    // smart_contracts/daocontract/contract.py:371-372
+    // smart_contracts/daocontract/contract.py:406-407
     // # Send inner payment to recipient
     // itxn.Payment(
     intc_1 // pay
     itxn_field TypeEnum
-    // smart_contracts/daocontract/contract.py:375
+    // smart_contracts/daocontract/contract.py:410
     // fee=0,
     intc_0 // 0
     itxn_field Fee
-    // smart_contracts/daocontract/contract.py:371-376
+    // smart_contracts/daocontract/contract.py:406-411
     // # Send inner payment to recipient
     // itxn.Payment(
     //     receiver=proposal.recipient.native,
@@ -1343,7 +1300,7 @@ execute_proposal_after_if_else@3:
     //     fee=0,
     // ).submit()
     itxn_submit
-    // smart_contracts/daocontract/contract.py:340-343
+    // smart_contracts/daocontract/contract.py:375-378
     // # ------------------------------------------------------------------
     // # 8. execute_proposal — partial or full disbursement
     // # ------------------------------------------------------------------
@@ -1354,7 +1311,7 @@ execute_proposal_after_if_else@3:
 
 // smart_contracts.daocontract.contract.Daocontract.delete_dao[routing]() -> void:
 delete_dao:
-    // smart_contracts/daocontract/contract.py:384
+    // smart_contracts/daocontract/contract.py:419
     // assert Txn.sender.bytes == self.creator.value, (
     txn Sender
     intc_0 // 0
@@ -1362,12 +1319,12 @@ delete_dao:
     app_global_get_ex
     assert // check self.creator exists
     ==
-    // smart_contracts/daocontract/contract.py:384-386
+    // smart_contracts/daocontract/contract.py:419-421
     // assert Txn.sender.bytes == self.creator.value, (
     //     "Only the creator can delete the DAO"
     // )
     assert // Only the creator can delete the DAO
-    // smart_contracts/daocontract/contract.py:388-394
+    // smart_contracts/daocontract/contract.py:423-429
     // # Send all remaining ALGO back to the creator via close_remainder_to
     // itxn.Payment(
     //     receiver=Txn.sender,
@@ -1376,28 +1333,28 @@ delete_dao:
     //     fee=0,
     // ).submit()
     itxn_begin
-    // smart_contracts/daocontract/contract.py:390
+    // smart_contracts/daocontract/contract.py:425
     // receiver=Txn.sender,
     txn Sender
-    // smart_contracts/daocontract/contract.py:392
+    // smart_contracts/daocontract/contract.py:427
     // close_remainder_to=Txn.sender,
     dup
     itxn_field CloseRemainderTo
-    // smart_contracts/daocontract/contract.py:391
+    // smart_contracts/daocontract/contract.py:426
     // amount=0,
     intc_0 // 0
     itxn_field Amount
     itxn_field Receiver
-    // smart_contracts/daocontract/contract.py:388-389
+    // smart_contracts/daocontract/contract.py:423-424
     // # Send all remaining ALGO back to the creator via close_remainder_to
     // itxn.Payment(
     intc_1 // pay
     itxn_field TypeEnum
-    // smart_contracts/daocontract/contract.py:393
+    // smart_contracts/daocontract/contract.py:428
     // fee=0,
     intc_0 // 0
     itxn_field Fee
-    // smart_contracts/daocontract/contract.py:388-394
+    // smart_contracts/daocontract/contract.py:423-429
     // # Send all remaining ALGO back to the creator via close_remainder_to
     // itxn.Payment(
     //     receiver=Txn.sender,
@@ -1406,10 +1363,240 @@ delete_dao:
     //     fee=0,
     // ).submit()
     itxn_submit
-    // smart_contracts/daocontract/contract.py:378-381
+    // smart_contracts/daocontract/contract.py:413-416
     // # ------------------------------------------------------------------
     // # 9. delete_dao — creator only
     // # ------------------------------------------------------------------
     // @arc4.abimethod(allow_actions=["DeleteApplication"])
     intc_1 // 1
     return
+
+
+// smart_contracts.daocontract.contract.Daocontract._do_finalize(proposal_id: uint64) -> void:
+_do_finalize:
+    // smart_contracts/daocontract/contract.py:96-97
+    // @subroutine
+    // def _do_finalize(self, proposal_id: UInt64) -> None:
+    proto 1 0
+    pushbytes ""
+    dup
+    // smart_contracts/daocontract/contract.py:99
+    // key = arc4.UInt64(proposal_id)
+    frame_dig -1
+    itob
+    // smart_contracts/daocontract/contract.py:100
+    // proposal = self.proposals[key].copy()
+    bytec_3 // 0x70
+    swap
+    concat
+    dupn 2
+    box_get
+    swap
+    cover 2
+    assert // check self.proposals entry exists
+    // smart_contracts/daocontract/contract.py:102-103
+    // # Calculation
+    // total_votes = proposal.yes_votes.native + proposal.no_votes.native
+    dup
+    pushint 52
+    intc_2 // 8
+    box_extract
+    btoi
+    dup
+    uncover 2
+    pushint 60
+    intc_2 // 8
+    box_extract
+    btoi
+    +
+    dup
+    // smart_contracts/daocontract/contract.py:104
+    // quorum_met = total_votes >= self.quorum.value
+    intc_0 // 0
+    bytec 5 // "quorum"
+    app_global_get_ex
+    assert // check self.quorum exists
+    dig 1
+    <=
+    swap
+    // smart_contracts/daocontract/contract.py:106
+    // threshold_met = False
+    intc_0 // 0
+    swap
+    // smart_contracts/daocontract/contract.py:107
+    // if total_votes > 0:
+    bz _do_finalize_after_if_else@2
+    // smart_contracts/daocontract/contract.py:108
+    // yes_pct = proposal.yes_votes.native * 100 // total_votes
+    frame_dig 4
+    pushint 100
+    *
+    frame_dig 5
+    /
+    // smart_contracts/daocontract/contract.py:109
+    // threshold_met = yes_pct >= self.threshold.value
+    intc_0 // 0
+    bytec 6 // "threshold"
+    app_global_get_ex
+    assert // check self.threshold exists
+    >=
+    frame_bury 7
+
+_do_finalize_after_if_else@2:
+    // smart_contracts/daocontract/contract.py:111-113
+    // # Guaranteed pass check: yes_votes > (total_members * threshold / 100)
+    // # This allows early execution before the deadline if it's mathematically certain.
+    // guaranteed_pass = False
+    intc_0 // 0
+    frame_bury 0
+    // smart_contracts/daocontract/contract.py:114
+    // if self.total_members.value > 0:
+    intc_0 // 0
+    bytec_0 // "total_members"
+    app_global_get_ex
+    assert // check self.total_members exists
+    bz _do_finalize_after_if_else@4
+    // smart_contracts/daocontract/contract.py:115-117
+    // # We use a conservative check: yes_votes must be an absolute majority of the DAO
+    // # to bypass the deadline safely.
+    // guaranteed_pass = proposal.yes_votes.native > (self.total_members.value // 2)
+    intc_0 // 0
+    bytec_0 // "total_members"
+    app_global_get_ex
+    assert // check self.total_members exists
+    intc_3 // 2
+    /
+    frame_dig 4
+    <
+    frame_bury 0
+
+_do_finalize_after_if_else@4:
+    // smart_contracts/daocontract/contract.py:119-121
+    // # Requirements check
+    // # Can finalize if: (Deadline passed AND met threshold) OR (Absolute majority met)
+    // can_pass = (Global.latest_timestamp > proposal.deadline.native and quorum_met and threshold_met) or guaranteed_pass
+    global LatestTimestamp
+    frame_dig 2
+    pushint 68
+    intc_2 // 8
+    box_extract
+    btoi
+    dup
+    frame_bury 1
+    >
+    bz _do_finalize_bool_false@8
+    frame_dig 6
+    bz _do_finalize_bool_false@8
+    frame_dig 7
+    bz _do_finalize_bool_false@8
+    intc_1 // 1
+
+_do_finalize_bool_merge@9:
+    // smart_contracts/daocontract/contract.py:119-121
+    // # Requirements check
+    // # Can finalize if: (Deadline passed AND met threshold) OR (Absolute majority met)
+    // can_pass = (Global.latest_timestamp > proposal.deadline.native and quorum_met and threshold_met) or guaranteed_pass
+    frame_dig 0
+    ||
+    // smart_contracts/daocontract/contract.py:123
+    // if can_pass:
+    bz _do_finalize_else_body@12
+    // smart_contracts/daocontract/contract.py:124
+    // proposal.passed = arc4.Bool(True)  # noqa: FBT003
+    frame_dig 3
+    pushint 609
+    intc_1 // 1
+    setbit
+    // smart_contracts/daocontract/contract.py:125
+    // proposal.executed = arc4.Bool(True)  # noqa: FBT003
+    pushint 608
+    // smart_contracts/daocontract/contract.py:124
+    // proposal.passed = arc4.Bool(True)  # noqa: FBT003
+    intc_1 // 1
+    // smart_contracts/daocontract/contract.py:125
+    // proposal.executed = arc4.Bool(True)  # noqa: FBT003
+    setbit
+    // smart_contracts/daocontract/contract.py:126
+    // proposal.remaining_amount = arc4.UInt64(0)
+    pushbytes 0x0000000000000000
+    replace2 44
+    // smart_contracts/daocontract/contract.py:128
+    // self.proposals[key] = proposal.copy()
+    frame_dig 2
+    dup
+    box_del
+    pop
+    dig 1
+    box_put
+    // smart_contracts/daocontract/contract.py:130-135
+    // # Execute payment immediately
+    // itxn.Payment(
+    //     receiver=proposal.recipient.native,
+    //     amount=proposal.amount.native,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // smart_contracts/daocontract/contract.py:132
+    // receiver=proposal.recipient.native,
+    dup
+    extract 4 32
+    // smart_contracts/daocontract/contract.py:133
+    // amount=proposal.amount.native,
+    swap
+    pushint 36
+    extract_uint64
+    itxn_field Amount
+    itxn_field Receiver
+    // smart_contracts/daocontract/contract.py:130-131
+    // # Execute payment immediately
+    // itxn.Payment(
+    intc_1 // pay
+    itxn_field TypeEnum
+    // smart_contracts/daocontract/contract.py:134
+    // fee=0,
+    intc_0 // 0
+    itxn_field Fee
+    // smart_contracts/daocontract/contract.py:130-135
+    // # Execute payment immediately
+    // itxn.Payment(
+    //     receiver=proposal.recipient.native,
+    //     amount=proposal.amount.native,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+
+_do_finalize_after_if_else@15:
+    retsub
+
+_do_finalize_else_body@12:
+    // smart_contracts/daocontract/contract.py:136
+    // elif Global.latest_timestamp > proposal.deadline.native:
+    global LatestTimestamp
+    frame_dig 1
+    >
+    bz _do_finalize_after_if_else@15
+    // smart_contracts/daocontract/contract.py:137-138
+    // # Deadline passed but failed requirements
+    // proposal.passed = arc4.Bool(False)  # noqa: FBT003
+    frame_dig 3
+    pushint 609
+    intc_0 // 0
+    setbit
+    // smart_contracts/daocontract/contract.py:139
+    // proposal.rage_quit_deadline = arc4.UInt64(Global.latest_timestamp)
+    global LatestTimestamp
+    itob
+    replace2 77
+    // smart_contracts/daocontract/contract.py:140
+    // self.proposals[key] = proposal.copy()
+    frame_dig 2
+    dup
+    box_del
+    pop
+    swap
+    box_put
+    retsub
+
+_do_finalize_bool_false@8:
+    intc_0 // 0
+    b _do_finalize_bool_merge@9

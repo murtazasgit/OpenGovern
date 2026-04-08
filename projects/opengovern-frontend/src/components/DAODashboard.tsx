@@ -734,6 +734,7 @@ const DAODashboard: React.FC<DAODashboardProps> = ({ dao }) => {
                   discussionEnabled={discussionMap[proposal.id] ?? false}
                   walletAddress={activeAddress ?? null}
                   isMember={isMember}
+                  memberCount={dao.memberCount}
                   onVote={(yes) => handleVote(proposal.id, yes)}
                   onFinalize={() => handleFinalize(proposal.id)}
                 />

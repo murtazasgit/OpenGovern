@@ -93,6 +93,52 @@ class Daocontract(ARC4Contract):
         self.member_since = LocalState(UInt64, key="member_since")
         self.staked_amount = LocalState(UInt64, key="staked_amount")
 
+    @subroutine
+    def _do_finalize(self, proposal_id: UInt64) -> None:
+        """Internal logic to check requirements and finalize/execute a proposal."""
+        key = arc4.UInt64(proposal_id)
+        proposal = self.proposals[key].copy()
+
+        # Calculation
+        total_votes = proposal.yes_votes.native + proposal.no_votes.native
+        quorum_met = total_votes >= self.quorum.value
+        
+        threshold_met = False
+        if total_votes > 0:
+            yes_pct = proposal.yes_votes.native * 100 // total_votes
+            threshold_met = yes_pct >= self.threshold.value
+
+        # Guaranteed pass check: yes_votes > (total_members * threshold / 100)
+        # This allows early execution before the deadline if it's mathematically certain.
+        guaranteed_pass = False
+        if self.total_members.value > 0:
+            # We use a conservative check: yes_votes must be an absolute majority of the DAO
+            # to bypass the deadline safely.
+            guaranteed_pass = proposal.yes_votes.native > (self.total_members.value // 2)
+
+        # Requirements check
+        # Can finalize if: (Deadline passed AND met threshold) OR (Absolute majority met)
+        can_pass = (Global.latest_timestamp > proposal.deadline.native and quorum_met and threshold_met) or guaranteed_pass
+
+        if can_pass:
+            proposal.passed = arc4.Bool(True)  # noqa: FBT003
+            proposal.executed = arc4.Bool(True)  # noqa: FBT003
+            proposal.remaining_amount = arc4.UInt64(0)
+            
+            self.proposals[key] = proposal.copy()
+
+            # Execute payment immediately
+            itxn.Payment(
+                receiver=proposal.recipient.native,
+                amount=proposal.amount.native,
+                fee=0,
+            ).submit()
+        elif Global.latest_timestamp > proposal.deadline.native:
+            # Deadline passed but failed requirements
+            proposal.passed = arc4.Bool(False)  # noqa: FBT003
+            proposal.rage_quit_deadline = arc4.UInt64(Global.latest_timestamp)
+            self.proposals[key] = proposal.copy()
+
     @arc4.abimethod()
     def delete_proposal(self, proposal_id: UInt64) -> None:
         """Allow the creator to delete a proposal box (required before app deletion)."""
@@ -306,54 +352,25 @@ class Daocontract(ARC4Contract):
 
         self.proposals[key] = proposal.copy()
 
+        # AUTO-EXECUTE: Check if this vote finalized the proposal early
+        self._do_finalize(proposal_id)
+
     # ------------------------------------------------------------------
-    # 7. finalize_proposal
+    # 7. finalize_proposal — manual trigger (optional)
     # ------------------------------------------------------------------
     @arc4.abimethod()
     def finalize_proposal(self, proposal_id: UInt64) -> None:
         key = arc4.UInt64(proposal_id)
         assert key in self.proposals, "Proposal does not exist"
-
+        
         proposal = self.proposals[key].copy()
-
-        # Must be past voting deadline
-        assert Global.latest_timestamp > proposal.deadline.native, (
-            "Voting period not ended yet"
-        )
-        # Must not already be finalized
-        assert proposal.rage_quit_deadline.native == 0, (
-            "Proposal already finalized"
+        
+        # Must not already be finalized/executed
+        assert proposal.rage_quit_deadline.native == 0 and not proposal.passed.native, (
+            "Proposal already finalized or passed"
         )
 
-        total_votes = proposal.yes_votes.native + proposal.no_votes.native
-
-        # Quorum check
-        quorum_met = total_votes >= self.quorum.value
-
-        # Threshold check (yes_votes * 100 / total_votes >= threshold)
-        threshold_met = False
-        if total_votes > 0:
-            yes_pct = proposal.yes_votes.native * 100 // total_votes
-            threshold_met = yes_pct >= self.threshold.value
-
-        if quorum_met and threshold_met:
-            proposal.passed = arc4.Bool(True)  # noqa: FBT003
-            proposal.executed = arc4.Bool(True)  # noqa: FBT003
-            proposal.remaining_amount = arc4.UInt64(0)
-            
-            # Execute payment immediately
-            itxn.Payment(
-                receiver=proposal.recipient.native,
-                amount=proposal.amount.native,
-                fee=0,
-            ).submit()
-        else:
-            proposal.passed = arc4.Bool(False)  # noqa: FBT003
-
-        # Set rage-quit window to 0 effectively
-        proposal.rage_quit_deadline = arc4.UInt64(Global.latest_timestamp)
-
-        self.proposals[key] = proposal.copy()
+        self._do_finalize(proposal_id)
 
     # ------------------------------------------------------------------
     # 8. execute_proposal — partial or full disbursement

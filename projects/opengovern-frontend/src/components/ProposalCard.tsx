@@ -9,6 +9,7 @@ interface ProposalCardProps {
   discussionEnabled: boolean
   walletAddress: string | null
   isMember: boolean
+  memberCount: number
   onVote: (yes: boolean) => void
   onFinalize: () => void
 }
@@ -42,6 +43,7 @@ const ProposalCard: React.FC<ProposalCardProps> = ({
   discussionEnabled,
   walletAddress,
   isMember,
+  memberCount,
   onVote,
   onFinalize,
 }) => {
@@ -61,7 +63,10 @@ const ProposalCard: React.FC<ProposalCardProps> = ({
 
   const badge = STATUS_BADGE[proposal.status]
   const isVotingOpen = proposal.status === 'active' && proposal.deadline > Math.floor(Date.now() / 1000)
-  const canFinalize = proposal.status === 'active' && proposal.deadline <= Math.floor(Date.now() / 1000)
+  
+  // Early Finalization logic (Absolute Majority)
+  const isAbsoluteMajority = memberCount > 0 && proposal.yesVotes > Math.floor(memberCount / 2)
+  const canFinalize = (proposal.status === 'active') && (proposal.deadline <= Math.floor(Date.now() / 1000) || isAbsoluteMajority)
   const canExecute = proposal.status === 'passed' && !proposal.executed
 
   return (
@@ -78,6 +83,11 @@ const ProposalCard: React.FC<ProposalCardProps> = ({
           {discussionEnabled && (
             <span className="px-2 py-1 text-[10px] font-bold font-mono tracking-widest uppercase border border-black/20 bg-[#fef3c7] text-black/60">
               💬
+            </span>
+          )}
+          {isAbsoluteMajority && proposal.status === 'active' && (
+            <span className="px-2 py-1 text-[10px] font-bold font-mono tracking-widest uppercase border border-black bg-blue-500 text-white shrink-0 shadow-[1px_1px_0px_#000]">
+              GUARANTEED
             </span>
           )}
           <span
@@ -174,10 +184,10 @@ const ProposalCard: React.FC<ProposalCardProps> = ({
         {canFinalize && (
           <button
             onClick={onFinalize}
-            className="btn-web3 bg-[#fbbf24] text-black hover:bg-[#f59e0b] text-xs px-4 py-2"
+            className="btn-web3 bg-[#fbbf24] text-black hover:bg-[#f59e0b] text-xs px-4 py-2 border-2 border-black animate-pulse"
             data-test-id="finalize-btn"
           >
-            Finalize & Execute
+            {isAbsoluteMajority ? 'Auto-Execute Now' : 'Finalize & Execute'}
           </button>
         )}
       </div>
