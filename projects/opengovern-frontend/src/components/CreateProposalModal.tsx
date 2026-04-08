@@ -40,7 +40,7 @@ const CreateProposalModal: React.FC<CreateProposalModalProps> = ({ isOpen, onClo
   }
 
   const recipientValid = form.recipient.length === 0 || isValidAlgoAddress(form.recipient)
-  const isValid = form.title.trim().length > 0 && isValidAlgoAddress(form.recipient) && form.amountAlgo > 0
+  const isValid = form.title.trim().length > 0 && form.description.length <= 120 && isValidAlgoAddress(form.recipient) && form.amountAlgo > 0
 
   if (!isOpen) return null
 
@@ -85,15 +85,27 @@ const CreateProposalModal: React.FC<CreateProposalModalProps> = ({ isOpen, onClo
 
           {/* Description */}
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-widest font-bold mb-2 text-black/60">Description</label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block font-mono text-[10px] uppercase tracking-widest font-bold text-black/60">Description</label>
+              <span className={`font-mono text-[9px] uppercase tracking-widest ${form.description.length >= 120 ? 'text-red-500 font-bold' : 'text-black/40'}`}>
+                {form.description.length} / 120
+              </span>
+            </div>
             <textarea
               placeholder="Describe the proposal purpose and how funds will be used..."
-              className="w-full border-2 border-black bg-[#f9f9f9] px-4 py-3 font-mono text-sm outline-none focus:shadow-[4px_4px_0px_#fbbf24] transition-shadow h-24 resize-none placeholder:text-black/30"
+              className={`w-full border-2 border-black bg-[#f9f9f9] px-4 py-3 font-mono text-sm outline-none transition-shadow h-24 resize-none placeholder:text-black/30 ${
+                form.description.length >= 120 ? 'focus:shadow-[4px_4px_0px_#ef4444]' : 'focus:shadow-[4px_4px_0px_#fbbf24]'
+              }`}
               value={form.description}
               onChange={(e) => updateField('description', e.target.value)}
-              maxLength={512}
+              maxLength={120}
               data-test-id="proposal-desc-input"
             />
+            {form.description.length >= 120 && (
+              <p className="font-mono text-[9px] text-red-500 mt-1 uppercase tracking-widest font-bold">
+                ⚠ Maximum limit reached (Stored on-chain)
+              </p>
+            )}
           </div>
 
           {/* Recipient address */}

@@ -119,6 +119,7 @@ const CreateDAOModal: React.FC<CreateDAOModalProps> = ({ isOpen, onClose, onSubm
 
   const isValid =
     form.name.trim().length > 0 &&
+    form.description.length <= 120 &&
     form.quorum > 0 &&
     form.threshold >= 50 &&
     form.threshold <= 100 &&
@@ -280,15 +281,27 @@ const CreateDAOModal: React.FC<CreateDAOModalProps> = ({ isOpen, onClose, onSubm
 
               {/* Description */}
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-widest font-bold mb-2 text-black/60">Description</label>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block font-mono text-[10px] uppercase tracking-widest font-bold text-black/60">Description</label>
+                  <span className={`font-mono text-[9px] uppercase tracking-widest ${form.description.length >= 120 ? 'text-red-500 font-bold' : 'text-black/40'}`}>
+                    {form.description.length} / 120
+                  </span>
+                </div>
                 <textarea
                   placeholder="A community-governed fund for..."
-                  className="w-full border-2 border-black bg-[#f9f9f9] px-4 py-3 font-mono text-sm outline-none focus:shadow-[4px_4px_0px_#fbbf24] transition-shadow h-20 resize-none placeholder:text-black/30"
+                  className={`w-full border-2 border-black bg-[#f9f9f9] px-4 py-3 font-mono text-sm outline-none transition-shadow h-20 resize-none placeholder:text-black/30 ${
+                    form.description.length >= 120 ? 'focus:shadow-[4px_4px_0px_#ef4444]' : 'focus:shadow-[4px_4px_0px_#fbbf24]'
+                  }`}
                   value={form.description}
                   onChange={(e) => updateField('description', e.target.value)}
-                  maxLength={256}
+                  maxLength={120}
                   data-test-id="dao-desc-input"
                 />
+                {form.description.length >= 120 && (
+                  <p className="font-mono text-[9px] text-red-500 mt-1 uppercase tracking-widest font-bold">
+                    ⚠ Maximum limit reached (Stored on-chain)
+                  </p>
+                )}
               </div>
 
               {/* Quorum + Threshold row */}

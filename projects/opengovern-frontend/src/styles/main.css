@@ -13,44 +13,45 @@
     background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"), linear-gradient(135deg, #c8c8f0 0%, #d0d0f5 50%, #c4c4ee 100%);
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Syne', sans-serif;
   }
-  
-  h2, h3 {
+
+  h2,
+  h3 {
     @apply text-[#22c55e];
   }
 
   /* Mobile specific fixes */
   @media (max-width: 640px) {
-    h1 { @apply text-3xl; }
-    h2 { @apply text-2xl; }
-    h3 { @apply text-xl; }
+    h1 {
+      @apply text-3xl;
+    }
+
+    h2 {
+      @apply text-2xl;
+    }
+
+    h3 {
+      @apply text-xl;
+    }
   }
 }
 
 @layer components {
+
+  /* Futuristic web3 panels */
   .panel-web3 {
-    @apply border-2 border-black relative bg-white;
-    box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    margin-right: 8px;
-    margin-bottom: 8px;
-    max-width: calc(100% - 10px);
+    @apply bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_#000] transition-transform duration-300;
   }
 
-  @media (max-width: 640px) {
-    .panel-web3 {
-      box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1);
-      margin-right: 4px;
-      margin-bottom: 4px;
-      max-width: calc(100% - 6px);
-    }
-  }
-  
   .panel-web3:hover {
-    box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
-    @apply lg:-translate-y-1 lg:-translate-x-1;
+    @apply shadow-[6px_6px_0px_#000] lg:-translate-y-1 lg:-translate-x-1;
   }
 
   /* Button styles */
@@ -61,7 +62,7 @@
   .btn-primary-web3 {
     @apply btn-web3 bg-[#22c55e] text-white hover:bg-[#16a34a];
   }
-  
+
   .btn-secondary-web3 {
     @apply btn-web3 bg-white text-black hover:bg-gray-100;
   }
@@ -69,7 +70,7 @@
   .font-mono {
     font-family: 'Space Mono', monospace;
   }
-  
+
   .font-sans {
     font-family: 'Inter', sans-serif;
   }
@@ -77,11 +78,5 @@
   /* Responsive Grid fix */
   .responsive-grid {
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6;
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .overflow-hidden {
-    overflow: hidden !important;
   }
 }
