@@ -14,7 +14,7 @@ import { Pointer } from './components/ui/pointer'
 
 const Home: React.FC = () => {
   const navigate = useNavigate()
-  const { activeAddress, transactionSigner } = useWallet()
+  const { activeAddress, transactionSigner, wallets } = useWallet()
 
   const [daos, setDaos] = useState<DAO[]>([])
   const [loading, setLoading] = useState(true)
@@ -47,7 +47,7 @@ const Home: React.FC = () => {
           try {
             const accInfo = await algod.accountInformation(treasuryAddress).do()
             treasuryBalance = Number((accInfo as any).amount)
-          } catch {}
+          } catch { }
 
           loaded.push({
             appId: BigInt(id),
@@ -98,7 +98,7 @@ const Home: React.FC = () => {
       if (!approvalRes.ok || !clearRes.ok) {
         throw new Error(
           'Compiled TEAL not found. Place base64-encoded approval & clear programs in public/ ' +
-            '(Daocontract.approval.teal.b64 and Daocontract.clear.teal.b64).',
+          '(Daocontract.approval.teal.b64 and Daocontract.clear.teal.b64).',
         )
       }
 
@@ -142,8 +142,8 @@ const Home: React.FC = () => {
             const wlTxId =
               typeof wlResult === 'object' && wlResult !== null
                 ? String(
-                    (wlResult as unknown as Record<string, unknown>).txid ?? (wlResult as unknown as Record<string, unknown>).txId ?? '',
-                  )
+                  (wlResult as unknown as Record<string, unknown>).txid ?? (wlResult as unknown as Record<string, unknown>).txId ?? '',
+                )
                 : ''
             if (wlTxId) await algosdk.waitForConfirmation(algod, wlTxId, 4)
           } catch (whitelistErr) {
@@ -163,8 +163,8 @@ const Home: React.FC = () => {
         const joinTxId =
           typeof joinResult === 'object' && joinResult !== null
             ? String(
-                (joinResult as unknown as Record<string, unknown>).txid ?? (joinResult as unknown as Record<string, unknown>).txId ?? '',
-              )
+              (joinResult as unknown as Record<string, unknown>).txid ?? (joinResult as unknown as Record<string, unknown>).txId ?? '',
+            )
             : ''
         if (joinTxId) await algosdk.waitForConfirmation(algod, joinTxId, 4)
       } catch (joinErr) {
@@ -257,7 +257,19 @@ const Home: React.FC = () => {
               <div className="font-bold uppercase tracking-widest mb-1 text-sm">Deploy Your DAO</div>
               <div className="text-xs opacity-60">Create a new on-chain DAO treasury with your governance rules</div>
             </div>
-            <button onClick={() => setShowCreateModal(true)} className="btn-primary-web3 w-full sm:w-auto" disabled={!activeAddress}>
+            <button
+              onClick={() => {
+                if (activeAddress) {
+                  setShowCreateModal(true)
+                } else {
+                  const pera = wallets.find((w) => w.id === 'pera')
+                  if (pera) {
+                    pera.connect()
+                  }
+                }
+              }}
+              className="btn-primary-web3 w-full sm:w-auto"
+            >
               {activeAddress ? 'Create DAO' : 'Connect Wallet to Start'}
             </button>
           </div>
